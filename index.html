@@ -5,14 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>C Code Studio</title>
 
-<!-- โหลด JSCPP Engine ไว้ใน <head> เพื่อให้พร้อมใช้งานเสมอ -->
+<!-- โหลด JSCPP Engine ไว้ใน <head> -->
 <script src="https://cdn.jsdelivr.net/npm/jscpp@2.0.7/dist/JSCPP.es5.min.js"></script>
 
 <style>
-* {
-    box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 body {
     margin: 0;
     min-height: 100vh;
@@ -20,8 +17,6 @@ body {
     background: radial-gradient(circle at top left, #172554, #0b1120 45%, #020617);
     color: #e5e7eb;
 }
-
-/* HEADER */
 .header {
     height: 70px;
     display: flex;
@@ -31,46 +26,18 @@ body {
     background: rgba(15, 23, 42, .95);
     border-bottom: 1px solid #26344d;
 }
-
-.logo-area {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
+.logo-area { display: flex; align-items: center; gap: 12px; }
 .logo {
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
     border-radius: 12px;
     background: linear-gradient(135deg, #4f7cff, #7c3aed);
-    font-size: 22px;
-    font-weight: bold;
+    font-size: 22px; font-weight: bold;
 }
-
-.title h1 {
-    margin: 0;
-    font-size: 19px;
-}
-
-.title span {
-    color: #94a3b8;
-    font-size: 12px;
-}
-
-.actions {
-    display: flex;
-    gap: 8px;
-}
-
-button {
-    font-family: inherit;
-}
-
-.action-btn,
-.small-btn {
+.title h1 { margin: 0; font-size: 19px; }
+.title span { color: #94a3b8; font-size: 12px; }
+.actions { display: flex; gap: 8px; }
+.action-btn, .small-btn {
     border: 1px solid #334155;
     background: #111827;
     color: #e2e8f0;
@@ -78,14 +45,8 @@ button {
     padding: 9px 12px;
     cursor: pointer;
 }
+.action-btn:hover, .small-btn:hover { background: #1e293b; border-color: #4f7cff; }
 
-.action-btn:hover,
-.small-btn:hover {
-    background: #1e293b;
-    border-color: #4f7cff;
-}
-
-/* MAIN */
 .main {
     padding: 16px;
     display: grid;
@@ -93,8 +54,6 @@ button {
     gap: 14px;
     min-height: calc(100vh - 70px);
 }
-
-/* PANELS */
 .panel {
     background: #0f172a;
     border: 1px solid #26344d;
@@ -102,7 +61,6 @@ button {
     overflow: hidden;
     box-shadow: 0 15px 40px rgba(0,0,0,.25);
 }
-
 .panel-header {
     height: 47px;
     display: flex;
@@ -112,265 +70,67 @@ button {
     background: #111827;
     border-bottom: 1px solid #26344d;
 }
+.panel-title { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: bold; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: #3b82f6; }
+.dot.green { background: #22c55e; }
+.dot.red { background: #ef4444; }
 
-.panel-title {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #3b82f6;
-}
-
-.dot.green {
-    background: #22c55e;
-}
-
-.dot.red {
-    background: #ef4444;
-}
-
-/* EDITOR */
-.editor-panel {
-    min-height: 700px;
-    display: flex;
-    flex-direction: column;
-}
-
-.editor {
-    flex: 1;
-    display: flex;
-    min-height: 0;
-    background: #080f1d;
-    position: relative;
-}
-
+.editor-panel { min-height: 700px; display: flex; flex-direction: column; }
+.editor { flex: 1; display: flex; min-height: 0; background: #080f1d; position: relative; }
 .line-numbers {
-    width: 55px;
-    padding: 15px 10px;
-    color: #52627a;
-    background: #070d18;
-    border-right: 1px solid #1e2b41;
-    text-align: right;
-    font-family: Consolas, monospace;
-    font-size: 14px;
-    line-height: 23px;
-    white-space: pre;
-    user-select: none;
-    overflow: hidden;
+    width: 55px; padding: 15px 10px; color: #52627a; background: #070d18;
+    border-right: 1px solid #1e2b41; text-align: right; font-family: Consolas, monospace;
+    font-size: 14px; line-height: 23px; white-space: pre; user-select: none; overflow: hidden;
 }
-
-.code-wrap {
-    position: relative;
-    flex: 1;
-    min-width: 0;
-}
-
+.code-wrap { position: relative; flex: 1; min-width: 0; }
 #code {
-    width: 100%;
-    height: 100%;
-    min-height: 620px;
-    border: none;
-    outline: none;
-    resize: none;
-    padding: 15px;
-    background: transparent;
-    color: #dbeafe;
-    caret-color: #60a5fa;
-    font-family: Consolas, "Courier New", monospace;
-    font-size: 14px;
-    line-height: 23px;
-    tab-size: 4;
+    width: 100%; height: 100%; min-height: 620px; border: none; outline: none; resize: none;
+    padding: 15px; background: transparent; color: #dbeafe; caret-color: #60a5fa;
+    font-family: Consolas, "Courier New", monospace; font-size: 14px; line-height: 23px; tab-size: 4;
 }
-
-#code::selection {
-    background: rgba(59,130,246,.35);
-}
-
 .editor-footer {
-    height: 31px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 12px;
-    color: #64748b;
-    font-size: 11px;
-    background: #080d17;
-    border-top: 1px solid #26344d;
+    height: 31px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px; color: #64748b; font-size: 11px; background: #080d17; border-top: 1px solid #26344d;
 }
-
-/* ERROR BAR */
 .error-bar {
-    display: none;
-    padding: 9px 13px;
-    background: #2a1015;
-    color: #fca5a5;
-    border-top: 1px solid #7f1d1d;
-    font-family: Consolas, monospace;
-    font-size: 12px;
-    white-space: pre-wrap;
+    display: none; padding: 9px 13px; background: #2a1015; color: #fca5a5;
+    border-top: 1px solid #7f1d1d; font-family: Consolas, monospace; font-size: 12px; white-space: pre-wrap;
 }
+.error-bar.show { display: block; }
 
-.error-bar.show {
-    display: block;
-}
-
-/* CONTROLS */
-.controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding-top: 47px;
-}
-
+.controls { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 47px; }
 .control-btn {
-    width: 108px;
-    height: 44px;
-    border-radius: 10px;
-    border: 1px solid #334155;
-    background: #172033;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: .2s;
+    width: 108px; height: 44px; border-radius: 10px; border: 1px solid #334155;
+    background: #172033; color: white; font-weight: bold; cursor: pointer; transition: .2s;
 }
-
-.control-btn:hover {
-    transform: translateY(-2px);
-}
-
-.run {
-    border: none;
-    background: linear-gradient(135deg, #16a34a, #22c55e);
-}
-
-.stop {
-    color: #fecaca;
-}
-
-.clear {
-    color: #fde68a;
-}
-
+.control-btn:hover { transform: translateY(-2px); }
+.run { border: none; background: linear-gradient(135deg, #16a34a, #22c55e); }
+.stop { color: #fecaca; }
+.clear { color: #fde68a; }
 .status {
-    width: 108px;
-    padding: 8px 5px;
-    border-radius: 9px;
-    border: 1px solid #26344d;
-    text-align: center;
-    color: #94a3b8;
-    font-size: 11px;
+    width: 108px; padding: 8px 5px; border-radius: 9px; border: 1px solid #26344d;
+    text-align: center; color: #94a3b8; font-size: 11px;
 }
 
-/* RIGHT SIDE & CONSOLE */
-.right {
-    display: grid;
-    grid-template-rows: 1fr 180px;
-    gap: 12px;
-    min-height: 700px;
+.right { display: grid; grid-template-rows: 120px 1fr 140px; gap: 12px; min-height: 700px; }
+.input-area {
+    width: 100%; height: 100%; background: #0c0c0c; border: none; outline: none;
+    color: #38bdf8; font-family: Consolas, monospace; font-size: 13px; padding: 10px; resize: none;
 }
-
-.output-panel,
-.error-panel {
-    display: flex;
-    flex-direction: column;
-}
-
 .terminal-body {
-    flex: 1;
-    background: #0c0c0c;
-    color: #cccccc;
-    font-family: Consolas, "Courier New", monospace;
-    font-size: 14px;
-    padding: 14px;
-    overflow-y: auto;
-    cursor: text;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    word-break: break-all;
+    flex: 1; background: #0c0c0c; color: #cccccc; font-family: Consolas, monospace;
+    font-size: 14px; padding: 14px; overflow-y: auto; line-height: 1.5; white-space: pre-wrap; word-break: break-all;
 }
-
-.terminal-input {
-    background: transparent;
-    border: none;
-    outline: none;
-    color: #00ff66;
-    font-family: inherit;
-    font-size: inherit;
-    padding: 0;
-    margin: 0;
-    width: 150px;
-}
-
 .error-output {
-    flex: 1;
-    margin: 0;
-    padding: 14px;
-    overflow: auto;
-    font-family: Consolas, monospace;
-    font-size: 13px;
-    line-height: 22px;
-    white-space: pre-wrap;
-    background: #090e18;
-    color: #94a3b8;
+    flex: 1; margin: 0; padding: 14px; overflow: auto; font-family: Consolas, monospace;
+    font-size: 13px; line-height: 22px; white-space: pre-wrap; background: #090e18; color: #94a3b8;
 }
+.error-output.error { color: #fca5a5; }
+.error-output.success { color: #86efac; }
 
-.error-output.error {
-    color: #fca5a5;
-}
-
-.error-output.success {
-    color: #86efac;
-}
-
-/* MOBILE */
 @media (max-width: 1050px) {
-    .main {
-        grid-template-columns: 1fr;
-    }
-
-    .controls {
-        flex-direction: row;
-        justify-content: center;
-        padding-top: 0;
-    }
-
-    .right {
-        min-height: 700px;
-    }
-}
-
-@media (max-width: 600px) {
-    .header {
-        height: auto;
-        padding: 12px;
-        gap: 10px;
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .actions {
-        justify-content: center;
-    }
-
-    .main {
-        padding: 10px;
-    }
-
-    .editor-panel {
-        min-height: 600px;
-    }
-
-    #code {
-        min-height: 500px;
-    }
+    .main { grid-template-columns: 1fr; }
+    .controls { flex-direction: row; justify-content: center; padding-top: 0; }
 }
 </style>
 </head>
@@ -385,7 +145,6 @@ button {
             <span>Online C Programming Environment</span>
         </div>
     </div>
-
     <div class="actions">
         <button class="action-btn" onclick="copyCode()">📋 Copy</button>
         <button class="action-btn" onclick="saveCode()">💾 Save .c</button>
@@ -397,23 +156,14 @@ button {
     <!-- EDITOR -->
     <section class="panel editor-panel">
         <div class="panel-header">
-            <div class="panel-title">
-                <span class="dot"></span>
-                โปรแกรมภาษา C
-            </div>
+            <div class="panel-title"><span class="dot"></span> โปรแกรมภาษา C</div>
             <button class="small-btn" onclick="templateCode()">Template</button>
         </div>
 
         <div class="editor">
             <div class="line-numbers" id="lineNumbers">1</div>
             <div class="code-wrap">
-                <textarea
-                    id="code"
-                    spellcheck="false"
-                    autocomplete="off"
-                    autocorrect="off"
-                    autocapitalize="off"
-                ></textarea>
+                <textarea id="code" spellcheck="false" autocomplete="off"></textarea>
             </div>
         </div>
 
@@ -437,31 +187,27 @@ button {
     <!-- RIGHT SIDE -->
     <section class="right">
 
-        <!-- INTERACTIVE CONSOLE TERMINAL -->
-        <div class="panel output-panel">
+        <!-- INPUT PANEL (สำหรับ scanf) -->
+        <div class="panel">
             <div class="panel-header">
-                <div class="panel-title">
-                    <span class="dot green"></span>
-                    Console Output
-                </div>
-                <button class="small-btn" onclick="clearOutput()">Clear</button>
+                <div class="panel-title"><span class="dot"></span> STDIN (ป้อนข้อมูลสำหรับ scanf)</div>
             </div>
-
-            <div class="terminal-body" id="terminal" onclick="focusConsoleInput()">
-                <span id="terminalContent">กด Run เพื่อเริ่มประมวลผลโปรแกรม...</span>
-                <span id="interactiveLine" style="display: none;">
-                    <input type="text" id="consoleInput" class="terminal-input" autocomplete="off" onkeydown="handleConsoleInput(event)" />
-                </span>
-            </div>
+            <textarea id="customInput" class="input-area" placeholder="ใส่ข้อมูลสำหรับ scanf ที่นี่ (หากมีหลายค่าให้เว้นบรรทัด)..."></textarea>
         </div>
 
-        <!-- ERROR -->
-        <div class="panel error-panel">
+        <!-- CONSOLE OUTPUT -->
+        <div class="panel" style="display:flex; flex-direction:column;">
             <div class="panel-header">
-                <div class="panel-title">
-                    <span class="dot red"></span>
-                    Compile / Runtime Log
-                </div>
+                <div class="panel-title"><span class="dot green"></span> Console Output</div>
+                <button class="small-btn" onclick="clearOutput()">Clear</button>
+            </div>
+            <div class="terminal-body" id="terminalContent">กด Run เพื่อเริ่มประมวลผลโปรแกรม...</div>
+        </div>
+
+        <!-- ERROR LOG -->
+        <div class="panel" style="display:flex; flex-direction:column;">
+            <div class="panel-header">
+                <div class="panel-title"><span class="dot red"></span> Compile / Runtime Log</div>
             </div>
             <pre class="error-output" id="errorOutput">พร้อมทำงาน</pre>
         </div>
@@ -477,39 +223,26 @@ const errorOutput = document.getElementById("errorOutput");
 const errorBar = document.getElementById("errorBar");
 const status = document.getElementById("status");
 const position = document.getElementById("position");
-
 const terminalContent = document.getElementById("terminalContent");
-const interactiveLine = document.getElementById("interactiveLine");
-const consoleInput = document.getElementById("consoleInput");
-
-let inputBuffer = "";
+const customInput = document.getElementById("customInput");
 
 const starterCode =
 `#include <stdio.h>
 
 int main() {
-    int score = 85;
+    int a, b;
+    printf("Enter two numbers: ");
+    
+    // JSCPP จะดึงค่าจากช่อง STDIN ด้านบนมาใส่ให้ scanf
+    scanf("%d %d", &a, &b);
 
-    // ทดสอบ If-Else
-    if (score >= 50) {
-        printf("Score: %d - Pass!\\n", score);
-    } else {
-        printf("Score: %d - Fail!\\n", score);
-    }
-
-    // ทดสอบ Loop
-    printf("Looping 1 to 5: ");
-    for (int i = 1; i <= 5; i++) {
-        printf("%d ", i);
-    }
-    printf("\\n");
-
+    printf("\\nSum = %d\\n", a + b);
     return 0;
 }`;
 
 code.value = starterCode;
+customInput.value = "10 20"; // ตัวอย่าง Input สำหรับ scanf
 
-/* LINE NUMBERS & POSITION */
 function updateLines() {
     const count = code.value.split("\n").length;
     let result = "";
@@ -524,7 +257,6 @@ function updatePosition() {
     position.textContent = `Ln ${lines.length}, Col ${lines[lines.length - 1].length + 1}`;
 }
 
-/* CHECK CODE */
 function checkCode() {
     const source = code.value;
     const errors = [];
@@ -534,17 +266,8 @@ function checkCode() {
 
     const openBrace = (source.match(/\{/g) || []).length;
     const closeBrace = (source.match(/\}/g) || []).length;
-    if (openBrace !== closeBrace) errors.push("วงเล็บปีกกา { } ไม่ครบหรือไม่สมดุล");
+    if (openBrace !== closeBrace) errors.push("วงเล็บปีกกา { } ไม่สมดุล");
 
-    const openParen = (source.match(/\(/g) || []).length;
-    const closeParen = (source.match(/\)/g) || []).length;
-    if (openParen !== closeParen) errors.push("วงเล็บ ( ) ไม่ครบหรือไม่สมดุล");
-
-    showErrors(errors);
-    return errors;
-}
-
-function showErrors(errors) {
     if (errors.length > 0) {
         errorBar.classList.add("show");
         errorBar.textContent = "⚠ ตรวจพบ:\n" + errors.join("\n");
@@ -553,11 +276,11 @@ function showErrors(errors) {
     } else {
         errorBar.classList.remove("show");
         errorOutput.className = "error-output success";
-        errorOutput.textContent = "✓ ไม่พบข้อผิดพลาดเบื้องต้น";
+        errorOutput.textContent = "✓ ไม่พบข้อผิดพลาดไวยากรณ์เบื้องต้น";
     }
+    return errors;
 }
 
-/* KEYBOARD LISTENERS */
 code.addEventListener("keydown", function(event) {
     if (event.key === "Tab") {
         event.preventDefault();
@@ -567,7 +290,6 @@ code.addEventListener("keydown", function(event) {
         this.selectionStart = this.selectionEnd = start + 4;
         updateLines();
         updatePosition();
-        checkCode();
     }
     if (event.ctrlKey && event.key === "Enter") {
         event.preventDefault();
@@ -580,25 +302,18 @@ code.addEventListener("click", updatePosition);
 code.addEventListener("keyup", updatePosition);
 code.addEventListener("scroll", () => { lineNumbers.scrollTop = code.scrollTop; });
 
-/* CONSOLE HANDLERS */
 function clearOutput() {
     terminalContent.textContent = "";
-    interactiveLine.style.display = "none";
 }
 
-/* RUN CODE WITH JSCPP ENGINE */
 function runCode() {
     const source = code.value.trim();
     if (!source) return;
 
-    const errors = checkCode();
-    if (errors.length > 0) {
-        status.textContent = "● Error";
-        return;
-    }
-
     status.textContent = "● Running...";
     clearOutput();
+
+    const inputData = customInput.value; // ดึงค่าจากกล่อง STDIN
 
     const config = {
         stdio: {
@@ -611,10 +326,10 @@ function runCode() {
 
     setTimeout(() => {
         try {
-            // เรียกประมวลผลโค้ด C ผ่าน JSCPP Engine จริง
-            JSCPP.run(source, inputBuffer, config);
+            // เรียกใช้ JSCPP โดยส่งค่า Source Code และ Input เข้าไป
+            JSCPP.run(source, inputData, config);
 
-            terminalContent.textContent += "\n--------------------------------\nProcess exited after execution.";
+            terminalContent.textContent += "\n--------------------------------\nProcess exited successfully.";
             errorOutput.className = "error-output success";
             errorOutput.textContent = "✓ Compile และประมวลผลสำเร็จ";
             status.textContent = "● Ready";
@@ -629,44 +344,34 @@ function runCode() {
 
 function stopCode() {
     status.textContent = "● Stopped";
-    terminalContent.textContent += "\n--------------------------------\n[Program stopped by user]";
-    errorOutput.className = "error-output error";
-    errorOutput.textContent = "⏹ หยุดการทำงานโดยผู้ใช้";
+    terminalContent.textContent += "\n[Stopped by user]";
 }
 
 function templateCode() {
     code.value = starterCode;
+    customInput.value = "10 20";
     updateLines();
     updatePosition();
     checkCode();
     clearOutput();
-    terminalContent.textContent = "กด Run เพื่อเริ่มประมวลผลโปรแกรม...";
     status.textContent = "● Ready";
-    code.focus();
 }
 
 function clearAll() {
     code.value = "";
+    customInput.value = "";
     clearOutput();
     errorOutput.className = "error-output";
     errorOutput.textContent = "พร้อมทำงาน";
     errorBar.classList.remove("show");
     status.textContent = "● Ready";
     updateLines();
-    updatePosition();
-    code.focus();
 }
 
 async function copyCode() {
-    try {
-        await navigator.clipboard.writeText(code.value);
-        status.textContent = "● Copied";
-        setTimeout(() => { status.textContent = "● Ready"; }, 1200);
-    } catch {
-        code.select();
-        document.execCommand("copy");
-        status.textContent = "● Copied";
-    }
+    await navigator.clipboard.writeText(code.value);
+    status.textContent = "● Copied";
+    setTimeout(() => { status.textContent = "● Ready"; }, 1200);
 }
 
 function saveCode() {
@@ -675,11 +380,8 @@ function saveCode() {
     const link = document.createElement("a");
     link.href = url;
     link.download = "main.c";
-    document.body.appendChild(link);
     link.click();
-    link.remove();
     URL.revokeObjectURL(url);
-    status.textContent = "● Saved";
 }
 
 updateLines();
