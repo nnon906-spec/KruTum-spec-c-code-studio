@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>C Programming Editor</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: Arial, "Tahoma", sans-serif;
+            background: #080f1f;
+            color: #e8eef8;
+            overflow: hidden;
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            padding: 12px;
+            border: 1px solid #263754;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* =========================
+           TOP
+        ========================= */
+
+        .top-bar {
+            width: 100%;
+            height: 76px;
+            border: 1px solid #263754;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            padding: 10px 18px;
+        }
+
+        .title {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* =========================
+           WORK AREA
+        ========================= */
+
+        .workspace {
+            flex: 1;
+            min-height: 0;
+
+            display: grid;
+
+            /*
+                ซ้าย = 42%
+                กลาง = 14%
+                ขวา = 44%
+            */
+            grid-template-columns: 42% 14% 44%;
+
+            gap: 12px;
+        }
+
+        /* =========================
+           CODE AREA
+        ========================= */
+
+        .code-section {
+            border: 1px solid #263754;
+            min-width: 0;
+            min-height: 0;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            height: 42px;
+            border-bottom: 1px solid #263754;
+
+            display: flex;
+            align-items: center;
+            padding-left: 15px;
+
+            font-size: 17px;
+            font-weight: bold;
+
+            flex-shrink: 0;
+        }
+
+        .code-wrapper {
+            position: relative;
+            flex: 1;
+            min-height: 0;
+
+            display: flex;
+
+            background: #0a1222;
+        }
+
+        /* เลขบรรทัด */
+
+        .line-numbers {
+            width: 50px;
+            padding: 12px 8px;
+
+            border-right: 1px solid #263754;
+
+            background: #111a2b;
+
+            color: #8fa0ba;
+
+            text-align: right;
+
+            font-family: Consolas, monospace;
+            font-size: 15px;
+            line-height: 24px;
+
+            overflow: hidden;
+
+            user-select: none;
+        }
+
+        /* ช่องเขียนโค้ด */
+
+        #code {
+            flex: 1;
+
+            width: 100%;
+            height: 100%;
+
+            resize: none;
+
+            border: none;
+            outline: none;
+
+            padding: 12px;
+
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 15px;
+            line-height: 24px;
+
+            color: #e8eef8;
+            background: #0a1222;
+
+            tab-size: 4;
+
+            white-space: pre;
+            overflow: auto;
+        }
+
+        /* =========================
+           CENTER BUTTONS
+        ========================= */
+
+        .controls {
+            min-width: 0;
+
+            display: flex;
+            flex-direction: column;
+
+            align-items: center;
+
+            position: relative;
+        }
+
+        .control-button {
+            width: 130px;
+            height: 48px;
+
+            margin-bottom: 18px;
+
+            background: #0a1222;
+
+            border: 1px solid #39506f;
+
+            font-size: 16px;
+
+            cursor: pointer;
+
+            transition: 0.15s;
+        }
+
+        .control-button:hover {
+            background: #17243a;
+        }
+
+        .control-button:active {
+            transform: scale(0.97);
+        }
+
+        .run-button {
+            margin-top: 4px;
+        }
+
+        .clear-button {
+            position: absolute;
+
+            bottom: 24px;
+            left: 50%;
+
+            transform: translateX(-50%);
+        }
+
+        .clear-button:hover {
+            background: #17243a;
+        }
+
+        /* =========================
+           RIGHT
+        ========================= */
+
+        .right-section {
+            min-width: 0;
+            min-height: 0;
+
+            display: grid;
+            grid-template-rows: 1fr 54px 1fr;
+            gap: 0;
+        }
+
+        /* =========================
+           OUTPUT
+        ========================= */
+
+        .output-box {
+            border: 1px solid #263754;
+
+            min-height: 0;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-title {
+            height: 42px;
+
+            border-bottom: 1px solid #263754;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 17px;
+            font-weight: bold;
+
+            flex-shrink: 0;
+        }
+
+
+
+        /* =========================
+           COMBINED INPUT + OUTPUT
+        ========================= */
+
+        .console-area {
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            overflow: hidden;
+        }
+
+        .console-input,
+        .console-output {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .console-input {
+            border-bottom: 2px solid #111;
+        }
+
+        .console-label {
+            height: 34px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            padding-left: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            background: #111a2b;
+            border-bottom: 1px solid #ccc;
+        }
+
+        #stdin {
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+            resize: none;
+            border: none;
+            outline: none;
+            padding: 12px 15px;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 15px;
+            line-height: 24px;
+            color: #e8eef8;
+            background: #0a1222;
+            white-space: pre;
+            overflow: auto;
+        }
+
+        #output {
+            flex: 1;
+            min-height: 0;
+            margin: 0;
+            padding: 12px 15px;
+            overflow: auto;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 15px;
+            line-height: 24px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #0a1222;
+        }
+
+        /* =========================
+           ERROR
+        ========================= */
+
+        .error-title {
+            border-left: 1px solid #263754;
+            border-right: 1px solid #263754;
+            border-bottom: 1px solid #263754;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 16px;
+            font-weight: bold;
+
+            background: #0a1222;
+        }
+
+        .error-box {
+            border-left: 1px solid #263754;
+            border-right: 1px solid #263754;
+            border-bottom: 1px solid #263754;
+
+            min-height: 0;
+
+            padding: 12px;
+
+            overflow: auto;
+
+            font-family: Consolas, monospace;
+            font-size: 14px;
+
+            white-space: pre-wrap;
+        }
+
+        .error {
+            color: #ff6b7a;
+        }
+
+        .success {
+            color: #39d98a;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 900px) {
+
+            body {
+                overflow: auto;
+            }
+
+            .container {
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .code-section {
+                height: 500px;
+            }
+
+            .controls {
+                height: 130px;
+
+                flex-direction: row;
+
+                justify-content: center;
+
+                gap: 15px;
+            }
+
+            .control-button {
+                margin: 0;
+            }
+
+            .clear-button {
+                position: static;
+                transform: none;
+            }
+
+            .right-section {
+                height: 500px;
+            }
+        }
+
+        @media (max-width: 500px) {
+
+            .container {
+                padding: 7px;
+                border-width: 1px;
+            }
+
+            .top-bar {
+                height: 60px;
+                border-width: 1px;
+            }
+
+            .workspace {
+                gap: 8px;
+            }
+
+            .code-section,
+            .output-box {
+                border-width: 1px;
+            }
+
+            .control-button {
+                width: 105px;
+                height: 45px;
+                font-size: 14px;
+            }
+        }
+    
+        .top-bar,
+        .code-section,
+        .output-box {
+            background: #0d1627;
+        }
+
+        .title,
+        .section-title,
+        .output-title {
+            color: #f4f7fb;
+        }
+
+        .console-label {
+            color: #dbe5f4;
+            background: #111a2b;
+            border-bottom: 1px solid #263754;
+        }
+
+        #code,
+        #stdin,
+        #output {
+            color: #dbe5f4;
+            background: #070f1b;
+        }
+
+        .line-numbers {
+            background: #0d1627;
+            color: #71839d;
+        }
+
+        .control-button {
+            color: #dbe5f4;
+            background: #111a2b;
+            border-color: #39506f;
+        }
+
+        .control-button:hover {
+            background: #17243a;
+        }
+
+        .error-title,
+        .error-box {
+            background: #0a1222;
+            color: #dbe5f4;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- =========================
+         TOP
+    ========================== -->
+
+    <div class="top-bar">
+        <div class="title">
+            C Programming
+        </div>
+    </div>
+
+
+    <!-- =========================
+         WORKSPACE
+    ========================== -->
+
+    <div class="workspace">
+
+
+        <!-- =====================
+             CODE EDITOR
+        ====================== -->
+
+        <div class="code-section">
+
+            <div class="section-title">
+                หน้าเขียน แสดงสีแดงคำผิด
+            </div>
+
+            <div class="code-wrapper">
+
+                <div
+                    class="line-numbers"
+                    id="lineNumbers"
+                >
+                    1
+                </div>
+
+                <textarea
+                    id="code"
+                    spellcheck="false"
+                    placeholder="#include <stdio.h>
+
+int main() {
+    printf(&quot;Hello World!&quot;);
+
+    return 0;
+}"
+                ></textarea>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================
+             CONTROLS
+        ====================== -->
+
+        <div class="controls">
+
+            <button
+                class="control-button run-button"
+                onclick="runCode()"
+            >
+                ปุ่มรัน
+            </button>
+
+            <button
+                class="control-button"
+                onclick="stopCode()"
+            >
+                ปุ่มหยุด
+            </button>
+
+            <button
+                class="control-button clear-button"
+                onclick="clearAll()"
+            >
+                ปุ่มเคลียร์
+            </button>
+
+        </div>
+
+
+        <!-- =====================
+             RIGHT SIDE
+        ====================== -->
+
+        <div class="right-section">
+
+            <!-- COMBINED CONSOLE: INPUT + OUTPUT -->
+
+            <div class="output-box">
+
+                <div class="output-title">
+                    หน้ารัน
+                </div>
+
+                <div class="console-area">
+
+                    <div class="console-input">
+                        <div class="console-label">Input / stdin</div>
+                        <textarea id="stdin" spellcheck="false" placeholder="ใส่ข้อมูลนำเข้า เช่น
+10
+20"></textarea>
+                    </div>
+
+                    <div class="console-output">
+                        <div class="console-label">Output</div>
+                        <pre id="output">ผลลัพธ์จะแสดงที่นี่...</pre>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ERROR TITLE -->
+
+            <div class="error-title">
+                ข้อผิดพลาด
+            </div>
+
+
+            <!-- ERROR -->
+
+            <div
+                class="error-box"
+                id="errorBox"
+            >
+                ยังไม่มีข้อผิดพลาด
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    const codeEditor =
+        document.getElementById("code");
+
+    const lineNumbers =
+        document.getElementById("lineNumbers");
+
+    const output =
+        document.getElementById("output");
+
+    const stdin =
+        document.getElementById("stdin");
+
+    const errorBox =
+        document.getElementById("errorBox");
+
+
+    /* =========================
+       LINE NUMBERS
+    ========================== */
+
+    function updateLineNumbers() {
+
+        const lines =
+            codeEditor.value.split("\n").length;
+
+        let numbers = "";
+
+        for (let i = 1; i <= lines; i++) {
+            numbers += i + "\n";
+        }
+
+        lineNumbers.textContent =
+            numbers;
+    }
+
+
+    /* =========================
+       SCROLL LINE NUMBERS
+    ========================== */
+
+    codeEditor.addEventListener(
+        "scroll",
+        function () {
+
+            lineNumbers.scrollTop =
+                codeEditor.scrollTop;
+
+        }
+    );
+
+
+    /* =========================
+       INPUT
+    ========================== */
+
+    codeEditor.addEventListener(
+        "input",
+        function () {
+
+            updateLineNumbers();
+
+            checkErrors();
+
+        }
+    );
+
+
+    /* =========================
+       TAB
+    ========================== */
+
+    codeEditor.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Tab") {
+
+                event.preventDefault();
+
+                const start =
+                    this.selectionStart;
+
+                const end =
+                    this.selectionEnd;
+
+                this.value =
+                    this.value.substring(
+                        0,
+                        start
+                    ) +
+                    "    " +
+                    this.value.substring(
+                        end
+                    );
+
+                this.selectionStart =
+                    this.selectionEnd =
+                    start + 4;
+
+                updateLineNumbers();
+            }
+
+        }
+    );
+
+
+    /* =========================
+       CTRL + ENTER
+       RUN
+    ========================== */
+
+    codeEditor.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.ctrlKey &&
+                event.key === "Enter"
+            ) {
+
+                event.preventDefault();
+
+                runCode();
+
+            }
+
+        }
+    );
+
+
+    /* =========================
+       CHECK BASIC ERRORS
+    ========================== */
+
+    function checkErrors() {
+
+        const code =
+            codeEditor.value;
+
+        let errors = [];
+
+
+        /*
+            ตรวจวงเล็บ
+        */
+
+        const open =
+            (code.match(/\{/g) || []).length;
+
+        const close =
+            (code.match(/\}/g) || []).length;
+
+        if (open !== close) {
+
+            errors.push(
+                "วงเล็บปีกกา { } ไม่ครบ"
+            );
+
+        }
+
+
+        /*
+            ตรวจ main
+        */
+
+        if (
+            code.trim() !== "" &&
+            !code.includes("main")
+        ) {
+
+            errors.push(
+                "ไม่พบฟังก์ชัน main()"
+            );
+
+        }
+
+
+        /*
+            แสดง Error
+        */
+
+        if (errors.length > 0) {
+
+            errorBox.className =
+                "error";
+
+            errorBox.textContent =
+                errors.join("\n");
+
+        } else {
+
+            errorBox.className =
+                "success";
+
+            errorBox.textContent =
+                "ไม่พบข้อผิดพลาดเบื้องต้น";
+
+        }
+
+    }
+
+
+    /* =========================
+       RUN
+    ========================== */
+
+    function runCode() {
+
+        const code =
+            codeEditor.value.trim();
+
+
+        if (code === "") {
+
+            output.textContent =
+                "";
+
+            errorBox.className =
+                "error";
+
+            errorBox.textContent =
+                "กรุณาเขียนโค้ดก่อนกดปุ่มรัน";
+
+            return;
+        }
+
+
+        /*
+            ตรวจ Error
+        */
+
+        checkErrors();
+
+
+        /*
+            จำลองผลลัพธ์ printf()
+            สำหรับหน้าเว็บตัวอย่าง
+        */
+
+        let result = "";
+
+
+        /*
+            ค้นหา printf("...")
+        */
+
+        const printfRegex =
+            /printf\s*\(\s*"([\s\S]*?)"\s*\)/g;
+
+        let match;
+
+
+        while (
+            (match =
+                printfRegex.exec(code)) !== null
+        ) {
+
+            let text =
+                match[1];
+
+            text =
+                text
+                    .replace(/\\n/g, "\n")
+                    .replace(/\\t/g, "\t")
+                    .replace(/\\"/g, '"')
+                    .replace(/\\\\/g, "\\");
+
+            result += text;
+
+        }
+
+
+        /*
+            ถ้าไม่มี printf
+        */
+
+        if (result === "") {
+
+            result =
+                "โปรแกรมทำงานแล้ว\n" +
+                "(ไม่มีข้อความจาก printf)";
+
+        }
+
+
+        /*
+            แสดงผล
+        */
+
+        output.textContent =
+            result;
+
+
+        errorBox.className =
+            "success";
+
+        errorBox.textContent =
+            "Run สำเร็จ";
+
+
+        /*
+            เลื่อน Output ไปด้านบน
+        */
+
+        output.scrollTop = 0;
+
+    }
+
+
+    /* =========================
+       STOP
+    ========================== */
+
+    function stopCode() {
+
+        output.textContent =
+            "หยุดการทำงานแล้ว";
+
+        errorBox.className =
+            "error";
+
+        errorBox.textContent =
+            "โปรแกรมถูกหยุด";
+
+    }
+
+
+    /* =========================
+       CLEAR
+    ========================== */
+
+    function clearAll() {
+
+        codeEditor.value = "";
+        stdin.value = "";
+
+        output.textContent =
+            "ผลลัพธ์จะแสดงที่นี่...";
+
+        errorBox.className = "";
+
+        errorBox.textContent =
+            "ยังไม่มีข้อผิดพลาด";
+
+        updateLineNumbers();
+
+        codeEditor.focus();
+
+    }
+
+
+    /* =========================
+       START
+    ========================== */
+
+    updateLineNumbers();
+
+</script>
+
+</body>
+</html>
