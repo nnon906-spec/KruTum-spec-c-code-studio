@@ -14,8 +14,7 @@ body {
     margin: 0;
     min-height: 100vh;
     font-family: Arial, "Noto Sans Thai", sans-serif;
-    background:
-        radial-gradient(circle at top left, #172554, #0b1120 45%, #020617);
+    background: radial-gradient(circle at top left, #172554, #0b1120 45%, #020617);
     color: #e5e7eb;
 }
 
@@ -267,22 +266,46 @@ button {
     font-size: 11px;
 }
 
-/* RIGHT */
+/* RIGHT SIDE & CONSOLE */
 .right {
     display: grid;
-    grid-template-rows: 1.2fr .65fr .65fr;
+    grid-template-rows: 1fr 180px;
     gap: 12px;
     min-height: 700px;
 }
 
 .output-panel,
-.input-panel,
 .error-panel {
     display: flex;
     flex-direction: column;
 }
 
-.output,
+.terminal-body {
+    flex: 1;
+    background: #0c0c0c;
+    color: #cccccc;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    padding: 14px;
+    overflow-y: auto;
+    cursor: text;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.terminal-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #00ff66;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 0;
+    margin: 0;
+    width: 150px;
+}
+
 .error-output {
     flex: 1;
     margin: 0;
@@ -292,27 +315,6 @@ button {
     font-size: 13px;
     line-height: 22px;
     white-space: pre-wrap;
-}
-
-.output {
-    background: #06100b;
-    color: #d1fae5;
-}
-
-#input {
-    flex: 1;
-    width: 100%;
-    min-height: 100px;
-    border: none;
-    outline: none;
-    resize: none;
-    padding: 13px;
-    background: #080f1d;
-    color: #e2e8f0;
-    font-family: Consolas, monospace;
-}
-
-.error-output {
     background: #090e18;
     color: #94a3b8;
 }
@@ -375,7 +377,6 @@ button {
 <header class="header">
     <div class="logo-area">
         <div class="logo">C</div>
-
         <div class="title">
             <h1>C Code Studio</h1>
             <span>Online C Programming Environment</span>
@@ -392,24 +393,16 @@ button {
 
     <!-- EDITOR -->
     <section class="panel editor-panel">
-
         <div class="panel-header">
             <div class="panel-title">
                 <span class="dot"></span>
                 โปรแกรมภาษา C
             </div>
-
-            <button class="small-btn" onclick="templateCode()">
-                Template
-            </button>
+            <button class="small-btn" onclick="templateCode()">Template</button>
         </div>
 
         <div class="editor">
-
-            <div class="line-numbers" id="lineNumbers">
-1
-            </div>
-
+            <div class="line-numbers" id="lineNumbers">1</div>
             <div class="code-wrap">
                 <textarea
                     id="code"
@@ -419,7 +412,6 @@ button {
                     autocapitalize="off"
                 ></textarea>
             </div>
-
         </div>
 
         <div class="error-bar" id="errorBar"></div>
@@ -429,86 +421,46 @@ button {
             <span id="position">Ln 1, Col 1</span>
             <span>Ctrl + Enter = Run</span>
         </div>
-
     </section>
 
     <!-- BUTTONS -->
     <section class="controls">
-
-        <button class="control-btn run" onclick="runCode()">
-            ▶ Run
-        </button>
-
-        <button class="control-btn stop" onclick="stopCode()">
-            ⏹ Stop
-        </button>
-
-        <button class="control-btn clear" onclick="clearAll()">
-            🗑 Clear
-        </button>
-
-        <div class="status" id="status">
-            ● Ready
-        </div>
-
+        <button class="control-btn run" onclick="runCode()">▶ Run</button>
+        <button class="control-btn stop" onclick="stopCode()">⏹ Stop</button>
+        <button class="control-btn clear" onclick="clearAll()">🗑 Clear</button>
+        <div class="status" id="status">● Ready</div>
     </section>
 
     <!-- RIGHT SIDE -->
     <section class="right">
 
-        <!-- OUTPUT -->
+        <!-- INTERACTIVE CONSOLE TERMINAL -->
         <div class="panel output-panel">
-
             <div class="panel-header">
-
                 <div class="panel-title">
                     <span class="dot green"></span>
-                    Output
+                    Console Output (Dev-C++ Mode)
                 </div>
-
-                <button class="small-btn" onclick="clearOutput()">
-                    Clear
-                </button>
-
+                <button class="small-btn" onclick="clearOutput()">Clear</button>
             </div>
 
-            <pre class="output" id="output">ผลลัพธ์จะแสดงที่นี่...</pre>
-
-        </div>
-
-        <!-- INPUT -->
-        <div class="panel input-panel">
-
-            <div class="panel-header">
-
-                <div class="panel-title">
-                    <span class="dot"></span>
-                    Input / stdin
-                </div>
-
+            <div class="terminal-body" id="terminal" onclick="focusConsoleInput()">
+                <span id="terminalContent">กด Run เพื่อเริ่มประมวลผลโปรแกรม...</span>
+                <span id="interactiveLine" style="display: none;">
+                    <input type="text" id="consoleInput" class="terminal-input" autocomplete="off" onkeydown="handleConsoleInput(event)" />
+                </span>
             </div>
-
-            <textarea
-                id="input"
-                placeholder="ใส่ข้อมูลสำหรับ scanf() เช่น&#10;10 20"
-            ></textarea>
-
         </div>
 
         <!-- ERROR -->
         <div class="panel error-panel">
-
             <div class="panel-header">
-
                 <div class="panel-title">
                     <span class="dot red"></span>
-                    Compile / Runtime
+                    Compile / Runtime Log
                 </div>
-
             </div>
-
             <pre class="error-output" id="errorOutput">พร้อมทำงาน</pre>
-
         </div>
 
     </section>
@@ -516,15 +468,19 @@ button {
 </main>
 
 <script>
-
 const code = document.getElementById("code");
-const input = document.getElementById("input");
-const output = document.getElementById("output");
 const lineNumbers = document.getElementById("lineNumbers");
 const errorOutput = document.getElementById("errorOutput");
 const errorBar = document.getElementById("errorBar");
 const status = document.getElementById("status");
 const position = document.getElementById("position");
+
+const terminalContent = document.getElementById("terminalContent");
+const interactiveLine = document.getElementById("interactiveLine");
+const consoleInput = document.getElementById("consoleInput");
+
+let waitingResolver = null;
+let isProgramRunning = false;
 
 const starterCode =
 `#include <stdio.h>
@@ -533,857 +489,333 @@ int main() {
     int a, b;
 
     printf("Enter two numbers: ");
-
     scanf("%d %d", &a, &b);
 
-    printf("Sum = %d\\\\n", a + b);
+    printf("Sum = %d\\n", a + b);
 
     return 0;
 }`;
 
 code.value = starterCode;
 
-
-/* =========================
-   LINE NUMBERS
-========================= */
-
+/* LINE NUMBERS & POSITION */
 function updateLines() {
-
     const count = code.value.split("\n").length;
-
     let result = "";
-
-    for (let i = 1; i <= count; i++) {
-        result += i + "\n";
-    }
-
+    for (let i = 1; i <= count; i++) result += i + "\n";
     lineNumbers.textContent = result;
 }
 
-
-/* =========================
-   POSITION
-========================= */
-
 function updatePosition() {
-
     const cursor = code.selectionStart;
-
     const text = code.value.substring(0, cursor);
-
     const lines = text.split("\n");
-
-    const line = lines.length;
-
-    const col = lines[lines.length - 1].length + 1;
-
-    position.textContent =
-        `Ln ${line}, Col ${col}`;
+    position.textContent = `Ln ${lines.length}, Col ${lines[lines.length - 1].length + 1}`;
 }
 
-
-/* =========================
-   ERROR CHECK
-========================= */
-
+/* CHECK CODE */
 function checkCode() {
-
     const source = code.value;
-
     const errors = [];
 
-    if (!source.trim()) {
-        errors.push("Line 1: โปรแกรมว่าง");
-    }
+    if (!source.trim()) errors.push("Line 1: โปรแกรมว่าง");
+    if (source.trim() && !/main\s*\(/.test(source)) errors.push("ไม่พบฟังก์ชัน main()");
 
-    if (source.trim() && !/main\s*\(/.test(source)) {
-        errors.push("ไม่พบฟังก์ชัน main()");
-    }
+    const openBrace = (source.match(/\{/g) || []).length;
+    const closeBrace = (source.match(/\}/g) || []).length;
+    if (openBrace !== closeBrace) errors.push("วงเล็บปีกกา { } ไม่ครบหรือไม่สมดุล");
 
-    const openBrace =
-        (source.match(/\{/g) || []).length;
-
-    const closeBrace =
-        (source.match(/\}/g) || []).length;
-
-    if (openBrace !== closeBrace) {
-        errors.push(
-            "วงเล็บปีกกา { } ไม่ครบหรือไม่สมดุล"
-        );
-    }
-
-    const openParen =
-        (source.match(/\(/g) || []).length;
-
-    const closeParen =
-        (source.match(/\)/g) || []).length;
-
-    if (openParen !== closeParen) {
-        errors.push(
-            "วงเล็บ ( ) ไม่ครบหรือไม่สมดุล"
-        );
-    }
-
-    /*
-       ตรวจ printf / scanf เบื้องต้น
-    */
-
-    const printfCount =
-        (source.match(/\bprintf\s*\(/g) || []).length;
-
-    const scanfCount =
-        (source.match(/\bscanf\s*\(/g) || []).length;
-
-    if (printfCount > 0 && !source.includes("#include <stdio.h>")) {
-        errors.push(
-            "แนะนำให้เพิ่ม #include <stdio.h> สำหรับ printf()"
-        );
-    }
-
-    if (scanfCount > 0 && !source.includes("#include <stdio.h>")) {
-        errors.push(
-            "แนะนำให้เพิ่ม #include <stdio.h> สำหรับ scanf()"
-        );
-    }
+    const openParen = (source.match(/\(/g) || []).length;
+    const closeParen = (source.match(/\)/g) || []).length;
+    if (openParen !== closeParen) errors.push("วงเล็บ ( ) ไม่ครบหรือไม่สมดุล");
 
     showErrors(errors);
-
     return errors;
 }
 
-
-/* =========================
-   SHOW ERRORS
-========================= */
-
 function showErrors(errors) {
-
     if (errors.length > 0) {
-
         errorBar.classList.add("show");
-
-        errorBar.textContent =
-            "⚠ ตรวจพบ:\n" +
-            errors.join("\n");
-
-        errorOutput.className =
-            "error-output error";
-
-        errorOutput.textContent =
-            errors.join("\n");
-
+        errorBar.textContent = "⚠ ตรวจพบ:\n" + errors.join("\n");
+        errorOutput.className = "error-output error";
+        errorOutput.textContent = errors.join("\n");
     } else {
-
         errorBar.classList.remove("show");
-
-        errorOutput.className =
-            "error-output success";
-
-        errorOutput.textContent =
-            "✓ ไม่พบข้อผิดพลาดเบื้องต้น";
-
+        errorOutput.className = "error-output success";
+        errorOutput.textContent = "✓ ไม่พบข้อผิดพลาดเบื้องต้น";
     }
 }
 
-
-/* =========================
-   INPUT / TAB
-========================= */
-
+/* KEYBOARD & EVENT LISTENERS */
 code.addEventListener("keydown", function(event) {
-
     if (event.key === "Tab") {
-
         event.preventDefault();
-
         const start = this.selectionStart;
         const end = this.selectionEnd;
-
-        this.value =
-            this.value.substring(0, start) +
-            "    " +
-            this.value.substring(end);
-
-        this.selectionStart =
-            this.selectionEnd =
-            start + 4;
-
+        this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + 4;
         updateLines();
         updatePosition();
         checkCode();
     }
-
     if (event.ctrlKey && event.key === "Enter") {
-
         event.preventDefault();
-
         runCode();
     }
-
 });
 
-
-code.addEventListener("input", function() {
-    updateLines();
-    updatePosition();
-    checkCode();
-});
-
-
+code.addEventListener("input", () => { updateLines(); updatePosition(); checkCode(); });
 code.addEventListener("click", updatePosition);
 code.addEventListener("keyup", updatePosition);
+code.addEventListener("scroll", () => { lineNumbers.scrollTop = code.scrollTop; });
 
+/* INTERACTIVE CONSOLE HANDLERS */
+function focusConsoleInput() {
+    if (interactiveLine.style.display !== "none") {
+        consoleInput.focus();
+    }
+}
 
-code.addEventListener("scroll", function() {
+function readConsoleInput() {
+    return new Promise((resolve) => {
+        waitingResolver = resolve;
+        interactiveLine.style.display = "inline";
+        consoleInput.value = "";
+        consoleInput.focus();
+    });
+}
 
-    lineNumbers.scrollTop =
-        code.scrollTop;
-});
+function handleConsoleInput(event) {
+    if (event.key === "Enter") {
+        const val = consoleInput.value;
+        interactiveLine.style.display = "none";
+        terminalContent.textContent += val + "\n";
+        if (waitingResolver) {
+            const resolve = waitingResolver;
+            waitingResolver = null;
+            resolve(val);
+        }
+    }
+}
 
+function clearOutput() {
+    terminalContent.textContent = "";
+    interactiveLine.style.display = "none";
+}
 
-/* =========================
-   TEMPLATE
-========================= */
-
+/* RUN / STOP / TEMPLATE */
 function templateCode() {
-
     code.value = starterCode;
-
     updateLines();
     updatePosition();
     checkCode();
-
-    output.textContent =
-        "ผลลัพธ์จะแสดงที่นี่...";
-
-    status.textContent =
-        "● Ready";
-
+    clearOutput();
+    terminalContent.textContent = "กด Run เพื่อเริ่มประมวลผลโปรแกรม...";
+    status.textContent = "● Ready";
     code.focus();
 }
 
-
-/* =========================
-   RUN
-========================= */
-
 function runCode() {
-
     const source = code.value.trim();
-
-    if (!source) {
-
-        showRuntimeError(
-            "กรุณาเขียนโปรแกรมก่อนกด Run"
-        );
-
-        return;
-    }
+    if (!source) return;
 
     const errors = checkCode();
-
-    if (
-        errors.some(
-            e =>
-                !e.startsWith("แนะนำ")
-        )
-    ) {
-
-        status.textContent =
-            "● Error";
-
+    if (errors.length > 0) {
+        status.textContent = "● Error";
         return;
     }
 
-    status.textContent =
-        "● Running...";
+    status.textContent = "● Running...";
+    clearOutput();
+    isProgramRunning = true;
 
-    output.textContent =
-        "กำลังประมวลผล...";
-
-    setTimeout(function() {
-
+    setTimeout(async function() {
         try {
-
-            simulateC();
-
+            await simulateC();
         } catch (error) {
-
-            showRuntimeError(
-                "Runtime Error: " +
-                error.message
-            );
-
+            showRuntimeError("Runtime Error: " + error.message);
         }
-
-    }, 350);
+    }, 200);
 }
-
-
-/* =========================
-   STOP
-========================= */
 
 function stopCode() {
-
-    status.textContent =
-        "● Stopped";
-
-    output.textContent =
-        "Program stopped.";
-
-    errorOutput.className =
-        "error-output error";
-
-    errorOutput.textContent =
-        "⏹ หยุดการทำงานโดยผู้ใช้";
+    isProgramRunning = false;
+    interactiveLine.style.display = "none";
+    if (waitingResolver) {
+        waitingResolver = null;
+    }
+    status.textContent = "● Stopped";
+    terminalContent.textContent += "\n--------------------------------\n[Program stopped by user]";
+    errorOutput.className = "error-output error";
+    errorOutput.textContent = "⏹ หยุดการทำงานโดยผู้ใช้";
 }
 
-
-/* =========================
-   SIMULATE C
-========================= */
-
-function simulateC() {
-
+/* SIMULATE C INTERACTIVE */
+async function simulateC() {
     const source = code.value;
-
-    const values =
-        input.value
-            .trim()
-            .split(/\s+/)
-            .filter(Boolean);
-
-    let inputIndex = 0;
-
     const variables = {};
 
+    const statements = source
+        .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, "")
+        .split(";")
+        .map(s => s.trim())
+        .filter(Boolean);
 
-    /*
-       รองรับ
+    for (let statement of statements) {
+        if (!isProgramRunning) return;
 
-       int a;
-       int a = 10;
-       int a, b;
-    */
+        if (statement.startsWith("int ")) {
+            const decl = statement.replace("int ", "").trim();
+            decl.split(",").forEach(p => {
+                const parts = p.split("=");
+                const name = parts[0].trim();
+                const val = parts[1] ? evaluate(parts[1].trim(), variables) : 0;
+                if (name) variables[name] = Number(val) || 0;
+            });
+        }
 
-    const declarations =
-        /\bint\s+([^;]+);/g;
+        if (statement.includes("printf")) {
+            const match = /printf\s*\(\s*"([\s\S]*?)"\s*(?:,\s*([\s\S]*?))?\s*\)/.exec(statement);
+            if (match) {
+                let text = match[1];
+                const args = match[2] ? splitArguments(match[2]) : [];
+                let argIdx = 0;
 
-    let match;
+                text = text.replace(/%(\.?\d*)f/g, (m, p) => {
+                    const val = evaluate(args[argIdx++], variables);
+                    return Number(val).toFixed(p ? parseInt(p.replace(".", "")) : 6);
+                });
+                text = text.replace(/%d/g, () => evaluate(args[argIdx++], variables));
+                text = text.replace(/%c/g, () => evaluate(args[argIdx++], variables));
+                text = text.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\"/g, '"');
 
-    while (
-        (match =
-            declarations.exec(source)) !== null
-    ) {
+                terminalContent.textContent += text;
+            }
+        }
 
-        const declaration =
-            match[1];
+        if (statement.includes("scanf")) {
+            const match = /scanf\s*\(\s*"([^"]*)"\s*,\s*([^)]+)\)/.exec(statement);
+            if (match) {
+                const format = match[1];
+                const args = match[2].split(",").map(x => x.replace("&", "").trim());
+                const formats = format.match(/%[dfc]/g) || [];
 
-        const parts =
-            declaration.split(",");
+                for (let i = 0; i < formats.length; i++) {
+                    if (!isProgramRunning) return;
+                    const varName = args[i];
+                    const inputVal = await readConsoleInput();
 
-        parts.forEach(part => {
-
-            part = part.trim();
-
-            const equalIndex =
-                part.indexOf("=");
-
-            if (equalIndex >= 0) {
-
-                const name =
-                    part.substring(
-                        0,
-                        equalIndex
-                    ).trim();
-
-                const expression =
-                    part.substring(
-                        equalIndex + 1
-                    ).trim();
-
-                variables[name] =
-                    evaluate(
-                        expression,
-                        variables
-                    );
-
-            } else {
-
-                const name =
-                    part.trim();
-
-                if (/^[A-Za-z_]\w*$/.test(name)) {
-                    variables[name] = 0;
+                    if (inputVal.includes(" ")) {
+                        const tokens = inputVal.split(/\s+/);
+                        tokens.forEach((tok, idx) => {
+                            if (args[i + idx]) {
+                                variables[args[i + idx]] = isNaN(tok) ? tok : Number(tok);
+                            }
+                        });
+                        break;
+                    } else {
+                        variables[varName] = isNaN(inputVal) ? inputVal : Number(inputVal);
+                    }
                 }
             }
-
-        });
-
+        }
     }
 
-
-    /*
-       scanf()
-    */
-
-    const scanfRegex =
-        /scanf\s*\(\s*"([^"]*)"\s*,\s*([^)]+)\)/g;
-
-    while (
-        (match =
-            scanfRegex.exec(source)) !== null
-    ) {
-
-        const format =
-            match[1];
-
-        const args =
-            match[2]
-                .split(",")
-                .map(
-                    x =>
-                        x
-                            .replace(/&/g, "")
-                            .trim()
-                );
-
-        const formats =
-            format.match(/%[dfc]/g) || [];
-
-        formats.forEach(
-            (fmt, i) => {
-
-                const variable =
-                    args[i];
-
-                const value =
-                    values[inputIndex++] ??
-                    "0";
-
-                if (!variable) return;
-
-                if (fmt === "%d") {
-
-                    variables[variable] =
-                        Number(value);
-
-                } else {
-
-                    variables[variable] =
-                        value;
-
-                }
-
-            }
-        );
-
+    if (isProgramRunning) {
+        terminalContent.textContent += "\n--------------------------------\nProcess exited after execution.";
+        errorOutput.className = "error-output success";
+        errorOutput.textContent = "✓ Compile สำเร็จ\n✓ Program finished successfully.";
+        status.textContent = "● Ready";
+        isProgramRunning = false;
     }
-
-
-    /*
-       printf()
-    */
-
-    const printfRegex =
-        /printf\s*\(\s*"([\s\S]*?)"\s*(?:,\s*([\s\S]*?))?\s*\)/g;
-
-    let result = "";
-
-    while (
-        (match =
-            printfRegex.exec(source)) !== null
-    ) {
-
-        let text =
-            match[1];
-
-        const args =
-            splitArguments(
-                match[2] || ""
-            );
-
-        let argIndex = 0;
-
-
-        text =
-            text.replace(
-                /%d/g,
-                function() {
-
-                    const expression =
-                        args[argIndex++] || "0";
-
-                    return evaluate(
-                        expression,
-                        variables
-                    );
-
-                }
-            );
-
-
-        text =
-            text.replace(
-                /%f/g,
-                function() {
-
-                    const expression =
-                        args[argIndex++] || "0";
-
-                    const value =
-                        evaluate(
-                            expression,
-                            variables
-                        );
-
-                    return Number(value)
-                        .toFixed(6);
-
-                }
-            );
-
-
-        text =
-            text.replace(
-                /%c/g,
-                function() {
-
-                    const expression =
-                        args[argIndex++] || "";
-
-                    return evaluate(
-                        expression,
-                        variables
-                    );
-
-                }
-            );
-
-
-        text =
-            text
-                .replace(/\\n/g, "\n")
-                .replace(/\\t/g, "\t")
-                .replace(/\\"/g, '"');
-
-
-        result += text;
-    }
-
-
-    if (!result) {
-
-        result =
-            "Program finished successfully.";
-
-    }
-
-
-    output.textContent =
-        result;
-
-    errorOutput.className =
-        "error-output success";
-
-    errorOutput.textContent =
-        "✓ Compile สำเร็จ\n" +
-        "✓ Program finished successfully.";
-
-    status.textContent =
-        "● Ready";
 }
 
-
-/* =========================
-   SPLIT ARGUMENTS
-========================= */
-
 function splitArguments(text) {
-
-    if (!text.trim()) {
-        return [];
-    }
-
+    if (!text.trim()) return [];
     const result = [];
-
-    let current = "";
-
-    let depth = 0;
-
-    for (
-        let i = 0;
-        i < text.length;
-        i++
-    ) {
-
-        const char = text[i];
-
-        if (char === "(") {
-            depth++;
-        }
-
-        if (char === ")") {
-            depth--;
-        }
-
-        if (
-            char === "," &&
-            depth === 0
-        ) {
-
-            result.push(
-                current.trim()
-            );
-
+    let current = "", depth = 0;
+    for (let char of text) {
+        if (char === "(") depth++;
+        if (char === ")") depth--;
+        if (char === "," && depth === 0) {
+            result.push(current.trim());
             current = "";
-
         } else {
-
             current += char;
         }
     }
-
-    if (current.trim()) {
-        result.push(current.trim());
-    }
-
+    if (current.trim()) result.push(current.trim());
     return result;
 }
 
+function evaluate(expression, variables) {
+    if (!expression) return "";
+    expression = expression.trim();
+    if (expression.startsWith('"') && expression.endsWith('"')) return expression.slice(1, -1);
+    if (expression.startsWith("'") && expression.endsWith("'")) return expression.slice(1, -1);
 
-/* =========================
-   EVALUATE
-========================= */
+    let formula = expression.replace(/\b[A-Za-z_]\w*\b/g, name => {
+        return Object.prototype.hasOwnProperty.call(variables, name) ? variables[name] : name;
+    });
 
-function evaluate(
-    expression,
-    variables
-) {
-
-    if (!expression) {
-        return "";
-    }
-
-    expression =
-        expression.trim();
-
-
-    /*
-       String
-    */
-
-    if (
-        expression.startsWith('"') &&
-        expression.endsWith('"')
-    ) {
-
-        return expression.slice(1, -1);
-
-    }
-
-
-    /*
-       Character
-    */
-
-    if (
-        expression.startsWith("'") &&
-        expression.endsWith("'")
-    ) {
-
-        return expression.slice(1, -1);
-
-    }
-
-
-    /*
-       แทนค่าตัวแปร
-    */
-
-    let formula =
-        expression.replace(
-            /\b[A-Za-z_]\w*\b/g,
-            function(name) {
-
-                if (
-                    Object.prototype.hasOwnProperty.call(
-                        variables,
-                        name
-                    )
-                ) {
-
-                    return variables[name];
-
-                }
-
-                return name;
-            }
-        );
-
-
-    /*
-       คำนวณเลข
-    */
-
-    if (
-        /^[0-9+\-*/%().\s]+$/.test(formula)
-    ) {
-
+    if (/^[0-9+\-*/%().\s]+$/.test(formula)) {
         try {
-
-            return Function(
-                "return (" +
-                formula +
-                ")"
-            )();
-
+            return Function("return (" + formula + ")")();
         } catch {
-
             return formula;
         }
     }
-
-
     return formula;
 }
 
-
-/* =========================
-   CLEAR
-========================= */
-
 function clearAll() {
-
     code.value = "";
-    input.value = "";
-
-    output.textContent =
-        "ผลลัพธ์จะแสดงที่นี่...";
-
-    errorOutput.className =
-        "error-output";
-
-    errorOutput.textContent =
-        "พร้อมทำงาน";
-
+    clearOutput();
+    errorOutput.className = "error-output";
+    errorOutput.textContent = "พร้อมทำงาน";
     errorBar.classList.remove("show");
-
-    status.textContent =
-        "● Ready";
-
+    status.textContent = "● Ready";
     updateLines();
     updatePosition();
-
     code.focus();
 }
 
-
-function clearOutput() {
-
-    output.textContent =
-        "ผลลัพธ์จะแสดงที่นี่...";
-}
-
-
-/* =========================
-   COPY
-========================= */
-
 async function copyCode() {
-
     try {
-
-        await navigator.clipboard.writeText(
-            code.value
-        );
-
-        status.textContent =
-            "● Copied";
-
-        setTimeout(() => {
-            status.textContent =
-                "● Ready";
-        }, 1200);
-
+        await navigator.clipboard.writeText(code.value);
+        status.textContent = "● Copied";
+        setTimeout(() => { status.textContent = "● Ready"; }, 1200);
     } catch {
-
         code.select();
-
         document.execCommand("copy");
-
-        status.textContent =
-            "● Copied";
+        status.textContent = "● Copied";
     }
 }
 
-
-/* =========================
-   SAVE .C
-========================= */
-
 function saveCode() {
-
-    const blob =
-        new Blob(
-            [code.value],
-            {
-                type: "text/plain"
-            }
-        );
-
-    const url =
-        URL.createObjectURL(blob);
-
-    const link =
-        document.createElement("a");
-
+    const blob = new Blob([code.value], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
     link.href = url;
     link.download = "main.c";
-
     document.body.appendChild(link);
-
     link.click();
-
     link.remove();
-
     URL.revokeObjectURL(url);
-
-    status.textContent =
-        "● Saved";
+    status.textContent = "● Saved";
 }
-
-
-/* =========================
-   ERROR
-========================= */
 
 function showRuntimeError(message) {
-
-    output.textContent =
-        "เกิดข้อผิดพลาด";
-
-    errorOutput.className =
-        "error-output error";
-
-    errorOutput.textContent =
-        message;
-
-    status.textContent =
-        "● Error";
+    terminalContent.textContent += "\n[Runtime Error]";
+    errorOutput.className = "error-output error";
+    errorOutput.textContent = message;
+    status.textContent = "● Error";
+    isProgramRunning = false;
 }
-
-
-/* =========================
-   START
-========================= */
 
 updateLines();
 updatePosition();
 checkCode();
-
 </script>
 
 </body>
