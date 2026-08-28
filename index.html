@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>C Code Studio</title>
 
+<!-- โหลด JSCPP Engine ไว้ใน <head> เพื่อให้พร้อมใช้งานเสมอ -->
+<script src="https://cdn.jsdelivr.net/npm/jscpp@2.0.7/dist/JSCPP.es5.min.js"></script>
+
 <style>
-    
 * {
     box-sizing: border-box;
 }
@@ -440,7 +442,7 @@ button {
             <div class="panel-header">
                 <div class="panel-title">
                     <span class="dot green"></span>
-                    Console Output (Dev-C++ Mode)
+                    Console Output
                 </div>
                 <button class="small-btn" onclick="clearOutput()">Clear</button>
             </div>
@@ -480,19 +482,27 @@ const terminalContent = document.getElementById("terminalContent");
 const interactiveLine = document.getElementById("interactiveLine");
 const consoleInput = document.getElementById("consoleInput");
 
-let waitingResolver = null;
-let isProgramRunning = false;
+let inputBuffer = "";
 
 const starterCode =
 `#include <stdio.h>
 
 int main() {
-    int a, b;
+    int score = 85;
 
-    printf("Enter two numbers: ");
-    scanf("%d %d", &a, &b);
+    // ทดสอบ If-Else
+    if (score >= 50) {
+        printf("Score: %d - Pass!\\n", score);
+    } else {
+        printf("Score: %d - Fail!\\n", score);
+    }
 
-    printf("Sum = %d\\n", a + b);
+    // ทดสอบ Loop
+    printf("Looping 1 to 5: ");
+    for (int i = 1; i <= 5; i++) {
+        printf("%d ", i);
+    }
+    printf("\\n");
 
     return 0;
 }`;
@@ -547,7 +557,7 @@ function showErrors(errors) {
     }
 }
 
-/* KEYBOARD & EVENT LISTENERS */
+/* KEYBOARD LISTENERS */
 code.addEventListener("keydown", function(event) {
     if (event.key === "Tab") {
         event.preventDefault();
@@ -570,52 +580,13 @@ code.addEventListener("click", updatePosition);
 code.addEventListener("keyup", updatePosition);
 code.addEventListener("scroll", () => { lineNumbers.scrollTop = code.scrollTop; });
 
-/* INTERACTIVE CONSOLE HANDLERS */
-function focusConsoleInput() {
-    if (interactiveLine.style.display !== "none") {
-        consoleInput.focus();
-    }
-}
-
-function readConsoleInput() {
-    return new Promise((resolve) => {
-        waitingResolver = resolve;
-        interactiveLine.style.display = "inline";
-        consoleInput.value = "";
-        consoleInput.focus();
-    });
-}
-
-function handleConsoleInput(event) {
-    if (event.key === "Enter") {
-        const val = consoleInput.value;
-        interactiveLine.style.display = "none";
-        terminalContent.textContent += val + "\n";
-        if (waitingResolver) {
-            const resolve = waitingResolver;
-            waitingResolver = null;
-            resolve(val);
-        }
-    }
-}
-
+/* CONSOLE HANDLERS */
 function clearOutput() {
     terminalContent.textContent = "";
     interactiveLine.style.display = "none";
 }
 
-/* RUN / STOP / TEMPLATE */
-function templateCode() {
-    code.value = starterCode;
-    updateLines();
-    updatePosition();
-    checkCode();
-    clearOutput();
-    terminalContent.textContent = "กด Run เพื่อเริ่มประมวลผลโปรแกรม...";
-    status.textContent = "● Ready";
-    code.focus();
-}
-
+/* RUN CODE WITH JSCPP ENGINE */
 function runCode() {
     const source = code.value.trim();
     if (!source) return;
@@ -628,145 +599,50 @@ function runCode() {
 
     status.textContent = "● Running...";
     clearOutput();
-    isProgramRunning = true;
 
-    setTimeout(async function() {
-        try {
-            await simulateC();
-        } catch (error) {
-            showRuntimeError("Runtime Error: " + error.message);
+    const config = {
+        stdio: {
+            write: function(str) {
+                terminalContent.textContent += str;
+            },
+            drain: function() {}
         }
-    }, 200);
+    };
+
+    setTimeout(() => {
+        try {
+            // เรียกประมวลผลโค้ด C ผ่าน JSCPP Engine จริง
+            JSCPP.run(source, inputBuffer, config);
+
+            terminalContent.textContent += "\n--------------------------------\nProcess exited after execution.";
+            errorOutput.className = "error-output success";
+            errorOutput.textContent = "✓ Compile และประมวลผลสำเร็จ";
+            status.textContent = "● Ready";
+        } catch (error) {
+            terminalContent.textContent += "\n[Runtime Error]";
+            errorOutput.className = "error-output error";
+            errorOutput.textContent = "Runtime Error:\n" + error.message;
+            status.textContent = "● Error";
+        }
+    }, 50);
 }
 
 function stopCode() {
-    isProgramRunning = false;
-    interactiveLine.style.display = "none";
-    if (waitingResolver) {
-        waitingResolver = null;
-    }
     status.textContent = "● Stopped";
     terminalContent.textContent += "\n--------------------------------\n[Program stopped by user]";
     errorOutput.className = "error-output error";
     errorOutput.textContent = "⏹ หยุดการทำงานโดยผู้ใช้";
 }
 
-/* SIMULATE C INTERACTIVE */
-async function simulateC() {
-    const source = code.value;
-    const variables = {};
-
-    const statements = source
-        .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, "")
-        .split(";")
-        .map(s => s.trim())
-        .filter(Boolean);
-
-    for (let statement of statements) {
-        if (!isProgramRunning) return;
-
-        if (statement.startsWith("int ")) {
-            const decl = statement.replace("int ", "").trim();
-            decl.split(",").forEach(p => {
-                const parts = p.split("=");
-                const name = parts[0].trim();
-                const val = parts[1] ? evaluate(parts[1].trim(), variables) : 0;
-                if (name) variables[name] = Number(val) || 0;
-            });
-        }
-
-        if (statement.includes("printf")) {
-            const match = /printf\s*\(\s*"([\s\S]*?)"\s*(?:,\s*([\s\S]*?))?\s*\)/.exec(statement);
-            if (match) {
-                let text = match[1];
-                const args = match[2] ? splitArguments(match[2]) : [];
-                let argIdx = 0;
-
-                text = text.replace(/%(\.?\d*)f/g, (m, p) => {
-                    const val = evaluate(args[argIdx++], variables);
-                    return Number(val).toFixed(p ? parseInt(p.replace(".", "")) : 6);
-                });
-                text = text.replace(/%d/g, () => evaluate(args[argIdx++], variables));
-                text = text.replace(/%c/g, () => evaluate(args[argIdx++], variables));
-                text = text.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\"/g, '"');
-
-                terminalContent.textContent += text;
-            }
-        }
-
-        if (statement.includes("scanf")) {
-            const match = /scanf\s*\(\s*"([^"]*)"\s*,\s*([^)]+)\)/.exec(statement);
-            if (match) {
-                const format = match[1];
-                const args = match[2].split(",").map(x => x.replace("&", "").trim());
-                const formats = format.match(/%[dfc]/g) || [];
-
-                for (let i = 0; i < formats.length; i++) {
-                    if (!isProgramRunning) return;
-                    const varName = args[i];
-                    const inputVal = await readConsoleInput();
-
-                    if (inputVal.includes(" ")) {
-                        const tokens = inputVal.split(/\s+/);
-                        tokens.forEach((tok, idx) => {
-                            if (args[i + idx]) {
-                                variables[args[i + idx]] = isNaN(tok) ? tok : Number(tok);
-                            }
-                        });
-                        break;
-                    } else {
-                        variables[varName] = isNaN(inputVal) ? inputVal : Number(inputVal);
-                    }
-                }
-            }
-        }
-    }
-
-    if (isProgramRunning) {
-        terminalContent.textContent += "\n--------------------------------\nProcess exited after execution.";
-        errorOutput.className = "error-output success";
-        errorOutput.textContent = "✓ Compile สำเร็จ\n✓ Program finished successfully.";
-        status.textContent = "● Ready";
-        isProgramRunning = false;
-    }
-}
-
-function splitArguments(text) {
-    if (!text.trim()) return [];
-    const result = [];
-    let current = "", depth = 0;
-    for (let char of text) {
-        if (char === "(") depth++;
-        if (char === ")") depth--;
-        if (char === "," && depth === 0) {
-            result.push(current.trim());
-            current = "";
-        } else {
-            current += char;
-        }
-    }
-    if (current.trim()) result.push(current.trim());
-    return result;
-}
-
-function evaluate(expression, variables) {
-    if (!expression) return "";
-    expression = expression.trim();
-    if (expression.startsWith('"') && expression.endsWith('"')) return expression.slice(1, -1);
-    if (expression.startsWith("'") && expression.endsWith("'")) return expression.slice(1, -1);
-
-    let formula = expression.replace(/\b[A-Za-z_]\w*\b/g, name => {
-        return Object.prototype.hasOwnProperty.call(variables, name) ? variables[name] : name;
-    });
-
-    if (/^[0-9+\-*/%().\s]+$/.test(formula)) {
-        try {
-            return Function("return (" + formula + ")")();
-        } catch {
-            return formula;
-        }
-    }
-    return formula;
+function templateCode() {
+    code.value = starterCode;
+    updateLines();
+    updatePosition();
+    checkCode();
+    clearOutput();
+    terminalContent.textContent = "กด Run เพื่อเริ่มประมวลผลโปรแกรม...";
+    status.textContent = "● Ready";
+    code.focus();
 }
 
 function clearAll() {
@@ -806,19 +682,9 @@ function saveCode() {
     status.textContent = "● Saved";
 }
 
-function showRuntimeError(message) {
-    terminalContent.textContent += "\n[Runtime Error]";
-    errorOutput.className = "error-output error";
-    errorOutput.textContent = message;
-    status.textContent = "● Error";
-    isProgramRunning = false;
-}
-
 updateLines();
 updatePosition();
 checkCode();
 </script>
-<!-- ดึงตัวรันภาษา C (JSCPP Engine) เข้ามาใช้งานในเว็บ -->
-<script src="https://cdn.jsdelivr.net/npm/jscpp@2.0.7/dist/JSCPP.es5.min.js"></script>
 </body>
 </html>
