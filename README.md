@@ -1,1 +1,1 @@
-# nnon906-spec-c-code-studio
+# KruTum-spec-c-code-studio
