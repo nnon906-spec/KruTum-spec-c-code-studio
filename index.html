@@ -1,97 +1,1390 @@
-const terminalContent = document.getElementById("terminalContent");
-const interactiveLine = document.getElementById("interactiveLine");
-const promptText = document.getElementById("promptText");
-const consoleInput = document.getElementById("consoleInput");
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C Code Studio</title>
 
-let inputQueue = [];
-let waitingResolver = null;
-
-function focusConsoleInput() {
-    consoleInput.focus();
+<style>
+* {
+    box-sizing: border-box;
 }
 
-function clearOutput() {
-    terminalContent.textContent = "";
-    interactiveLine.style.display = "none";
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, "Noto Sans Thai", sans-serif;
+    background:
+        radial-gradient(circle at top left, #172554, #0b1120 45%, #020617);
+    color: #e5e7eb;
 }
 
-// ฟังก์ชันรอรับ Input แบบ Interactive
-function readConsoleInput() {
-    return new Promise((resolve) => {
-        if (inputQueue.length > 0) {
-            resolve(inputQueue.shift());
-        } else {
-            waitingResolver = resolve;
-            interactiveLine.style.display = "inline";
-            consoleInput.value = "";
-            consoleInput.focus();
-        }
-    });
+/* HEADER */
+.header {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 22px;
+    background: rgba(15, 23, 42, .95);
+    border-bottom: 1px solid #26344d;
 }
 
-function handleConsoleInput(event) {
-    if (event.key === "Enter") {
-        const val = consoleInput.value;
-        interactiveLine.style.display = "none";
-        terminalContent.textContent += val + "\n";
-        
-        if (waitingResolver) {
-            const res = waitingResolver;
-            waitingResolver = null;
-            res(val);
-        } else {
-            inputQueue.push(val);
-        }
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4f7cff, #7c3aed);
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.title h1 {
+    margin: 0;
+    font-size: 19px;
+}
+
+.title span {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+button {
+    font-family: inherit;
+}
+
+.action-btn,
+.small-btn {
+    border: 1px solid #334155;
+    background: #111827;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 9px 12px;
+    cursor: pointer;
+}
+
+.action-btn:hover,
+.small-btn:hover {
+    background: #1e293b;
+    border-color: #4f7cff;
+}
+
+/* MAIN */
+.main {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) 120px minmax(300px, 1fr);
+    gap: 14px;
+    min-height: calc(100vh - 70px);
+}
+
+/* PANELS */
+.panel {
+    background: #0f172a;
+    border: 1px solid #26344d;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,.25);
+}
+
+.panel-header {
+    height: 47px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    background: #111827;
+    border-bottom: 1px solid #26344d;
+}
+
+.panel-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #3b82f6;
+}
+
+.dot.green {
+    background: #22c55e;
+}
+
+.dot.red {
+    background: #ef4444;
+}
+
+/* EDITOR */
+.editor-panel {
+    min-height: 700px;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    background: #080f1d;
+    position: relative;
+}
+
+.line-numbers {
+    width: 55px;
+    padding: 15px 10px;
+    color: #52627a;
+    background: #070d18;
+    border-right: 1px solid #1e2b41;
+    text-align: right;
+    font-family: Consolas, monospace;
+    font-size: 14px;
+    line-height: 23px;
+    white-space: pre;
+    user-select: none;
+    overflow: hidden;
+}
+
+.code-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+#code {
+    width: 100%;
+    height: 100%;
+    min-height: 620px;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 15px;
+    background: transparent;
+    color: #dbeafe;
+    caret-color: #60a5fa;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    line-height: 23px;
+    tab-size: 4;
+}
+
+#code::selection {
+    background: rgba(59,130,246,.35);
+}
+
+.editor-footer {
+    height: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    color: #64748b;
+    font-size: 11px;
+    background: #080d17;
+    border-top: 1px solid #26344d;
+}
+
+/* ERROR BAR */
+.error-bar {
+    display: none;
+    padding: 9px 13px;
+    background: #2a1015;
+    color: #fca5a5;
+    border-top: 1px solid #7f1d1d;
+    font-family: Consolas, monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+}
+
+.error-bar.show {
+    display: block;
+}
+
+/* CONTROLS */
+.controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding-top: 47px;
+}
+
+.control-btn {
+    width: 108px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background: #172033;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.control-btn:hover {
+    transform: translateY(-2px);
+}
+
+.run {
+    border: none;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.stop {
+    color: #fecaca;
+}
+
+.clear {
+    color: #fde68a;
+}
+
+.status {
+    width: 108px;
+    padding: 8px 5px;
+    border-radius: 9px;
+    border: 1px solid #26344d;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+/* RIGHT */
+.right {
+    display: grid;
+    grid-template-rows: 1.2fr .65fr .65fr;
+    gap: 12px;
+    min-height: 700px;
+}
+
+.output-panel,
+.input-panel,
+.error-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.output,
+.error-output {
+    flex: 1;
+    margin: 0;
+    padding: 14px;
+    overflow: auto;
+    font-family: Consolas, monospace;
+    font-size: 13px;
+    line-height: 22px;
+    white-space: pre-wrap;
+}
+
+.output {
+    background: #06100b;
+    color: #d1fae5;
+}
+
+#input {
+    flex: 1;
+    width: 100%;
+    min-height: 100px;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 13px;
+    background: #080f1d;
+    color: #e2e8f0;
+    font-family: Consolas, monospace;
+}
+
+.error-output {
+    background: #090e18;
+    color: #94a3b8;
+}
+
+.error-output.error {
+    color: #fca5a5;
+}
+
+.error-output.success {
+    color: #86efac;
+}
+
+/* MOBILE */
+@media (max-width: 1050px) {
+    .main {
+        grid-template-columns: 1fr;
+    }
+
+    .controls {
+        flex-direction: row;
+        justify-content: center;
+        padding-top: 0;
+    }
+
+    .right {
+        min-height: 700px;
     }
 }
 
-// ปรับปรุงการ Simulate ให้รองรับ async/await
-async function simulateC() {
-    terminalContent.textContent = "";
-    inputQueue = [];
-    
+@media (max-width: 600px) {
+    .header {
+        height: auto;
+        padding: 12px;
+        gap: 10px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .actions {
+        justify-content: center;
+    }
+
+    .main {
+        padding: 10px;
+    }
+
+    .editor-panel {
+        min-height: 600px;
+    }
+
+    #code {
+        min-height: 500px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+    <div class="logo-area">
+        <div class="logo">C</div>
+
+        <div class="title">
+            <h1>C Code Studio</h1>
+            <span>Online C Programming Environment</span>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="action-btn" onclick="copyCode()">📋 Copy</button>
+        <button class="action-btn" onclick="saveCode()">💾 Save .c</button>
+    </div>
+</header>
+
+<main class="main">
+
+    <!-- EDITOR -->
+    <section class="panel editor-panel">
+
+        <div class="panel-header">
+            <div class="panel-title">
+                <span class="dot"></span>
+                โปรแกรมภาษา C
+            </div>
+
+            <button class="small-btn" onclick="templateCode()">
+                Template
+            </button>
+        </div>
+
+        <div class="editor">
+
+            <div class="line-numbers" id="lineNumbers">
+1
+            </div>
+
+            <div class="code-wrap">
+                <textarea
+                    id="code"
+                    spellcheck="false"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                ></textarea>
+            </div>
+
+        </div>
+
+        <div class="error-bar" id="errorBar"></div>
+
+        <div class="editor-footer">
+            <span>C • UTF-8</span>
+            <span id="position">Ln 1, Col 1</span>
+            <span>Ctrl + Enter = Run</span>
+        </div>
+
+    </section>
+
+    <!-- BUTTONS -->
+    <section class="controls">
+
+        <button class="control-btn run" onclick="runCode()">
+            ▶ Run
+        </button>
+
+        <button class="control-btn stop" onclick="stopCode()">
+            ⏹ Stop
+        </button>
+
+        <button class="control-btn clear" onclick="clearAll()">
+            🗑 Clear
+        </button>
+
+        <div class="status" id="status">
+            ● Ready
+        </div>
+
+    </section>
+
+    <!-- RIGHT SIDE -->
+    <section class="right">
+
+        <!-- OUTPUT -->
+        <div class="panel output-panel">
+
+            <div class="panel-header">
+
+                <div class="panel-title">
+                    <span class="dot green"></span>
+                    Output
+                </div>
+
+                <button class="small-btn" onclick="clearOutput()">
+                    Clear
+                </button>
+
+            </div>
+
+            <pre class="output" id="output">ผลลัพธ์จะแสดงที่นี่...</pre>
+
+        </div>
+
+        <!-- INPUT -->
+        <div class="panel input-panel">
+
+            <div class="panel-header">
+
+                <div class="panel-title">
+                    <span class="dot"></span>
+                    Input / stdin
+                </div>
+
+            </div>
+
+            <textarea
+                id="input"
+                placeholder="ใส่ข้อมูลสำหรับ scanf() เช่น&#10;10 20"
+            ></textarea>
+
+        </div>
+
+        <!-- ERROR -->
+        <div class="panel error-panel">
+
+            <div class="panel-header">
+
+                <div class="panel-title">
+                    <span class="dot red"></span>
+                    Compile / Runtime
+                </div>
+
+            </div>
+
+            <pre class="error-output" id="errorOutput">พร้อมทำงาน</pre>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+
+const code = document.getElementById("code");
+const input = document.getElementById("input");
+const output = document.getElementById("output");
+const lineNumbers = document.getElementById("lineNumbers");
+const errorOutput = document.getElementById("errorOutput");
+const errorBar = document.getElementById("errorBar");
+const status = document.getElementById("status");
+const position = document.getElementById("position");
+
+const starterCode =
+`#include <stdio.h>
+
+int main() {
+    int a, b;
+
+    printf("Enter two numbers: ");
+
+    scanf("%d %d", &a, &b);
+
+    printf("Sum = %d\\\\n", a + b);
+
+    return 0;
+}`;
+
+code.value = starterCode;
+
+
+/* =========================
+   LINE NUMBERS
+========================= */
+
+function updateLines() {
+
+    const count = code.value.split("\n").length;
+
+    let result = "";
+
+    for (let i = 1; i <= count; i++) {
+        result += i + "\n";
+    }
+
+    lineNumbers.textContent = result;
+}
+
+
+/* =========================
+   POSITION
+========================= */
+
+function updatePosition() {
+
+    const cursor = code.selectionStart;
+
+    const text = code.value.substring(0, cursor);
+
+    const lines = text.split("\n");
+
+    const line = lines.length;
+
+    const col = lines[lines.length - 1].length + 1;
+
+    position.textContent =
+        `Ln ${line}, Col ${col}`;
+}
+
+
+/* =========================
+   ERROR CHECK
+========================= */
+
+function checkCode() {
+
     const source = code.value;
+
+    const errors = [];
+
+    if (!source.trim()) {
+        errors.push("Line 1: โปรแกรมว่าง");
+    }
+
+    if (source.trim() && !/main\s*\(/.test(source)) {
+        errors.push("ไม่พบฟังก์ชัน main()");
+    }
+
+    const openBrace =
+        (source.match(/\{/g) || []).length;
+
+    const closeBrace =
+        (source.match(/\}/g) || []).length;
+
+    if (openBrace !== closeBrace) {
+        errors.push(
+            "วงเล็บปีกกา { } ไม่ครบหรือไม่สมดุล"
+        );
+    }
+
+    const openParen =
+        (source.match(/\(/g) || []).length;
+
+    const closeParen =
+        (source.match(/\)/g) || []).length;
+
+    if (openParen !== closeParen) {
+        errors.push(
+            "วงเล็บ ( ) ไม่ครบหรือไม่สมดุล"
+        );
+    }
+
+    /*
+       ตรวจ printf / scanf เบื้องต้น
+    */
+
+    const printfCount =
+        (source.match(/\bprintf\s*\(/g) || []).length;
+
+    const scanfCount =
+        (source.match(/\bscanf\s*\(/g) || []).length;
+
+    if (printfCount > 0 && !source.includes("#include <stdio.h>")) {
+        errors.push(
+            "แนะนำให้เพิ่ม #include <stdio.h> สำหรับ printf()"
+        );
+    }
+
+    if (scanfCount > 0 && !source.includes("#include <stdio.h>")) {
+        errors.push(
+            "แนะนำให้เพิ่ม #include <stdio.h> สำหรับ scanf()"
+        );
+    }
+
+    showErrors(errors);
+
+    return errors;
+}
+
+
+/* =========================
+   SHOW ERRORS
+========================= */
+
+function showErrors(errors) {
+
+    if (errors.length > 0) {
+
+        errorBar.classList.add("show");
+
+        errorBar.textContent =
+            "⚠ ตรวจพบ:\n" +
+            errors.join("\n");
+
+        errorOutput.className =
+            "error-output error";
+
+        errorOutput.textContent =
+            errors.join("\n");
+
+    } else {
+
+        errorBar.classList.remove("show");
+
+        errorOutput.className =
+            "error-output success";
+
+        errorOutput.textContent =
+            "✓ ไม่พบข้อผิดพลาดเบื้องต้น";
+
+    }
+}
+
+
+/* =========================
+   INPUT / TAB
+========================= */
+
+code.addEventListener("keydown", function(event) {
+
+    if (event.key === "Tab") {
+
+        event.preventDefault();
+
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+
+        this.value =
+            this.value.substring(0, start) +
+            "    " +
+            this.value.substring(end);
+
+        this.selectionStart =
+            this.selectionEnd =
+            start + 4;
+
+        updateLines();
+        updatePosition();
+        checkCode();
+    }
+
+    if (event.ctrlKey && event.key === "Enter") {
+
+        event.preventDefault();
+
+        runCode();
+    }
+
+});
+
+
+code.addEventListener("input", function() {
+    updateLines();
+    updatePosition();
+    checkCode();
+});
+
+
+code.addEventListener("click", updatePosition);
+code.addEventListener("keyup", updatePosition);
+
+
+code.addEventListener("scroll", function() {
+
+    lineNumbers.scrollTop =
+        code.scrollTop;
+});
+
+
+/* =========================
+   TEMPLATE
+========================= */
+
+function templateCode() {
+
+    code.value = starterCode;
+
+    updateLines();
+    updatePosition();
+    checkCode();
+
+    output.textContent =
+        "ผลลัพธ์จะแสดงที่นี่...";
+
+    status.textContent =
+        "● Ready";
+
+    code.focus();
+}
+
+
+/* =========================
+   RUN
+========================= */
+
+function runCode() {
+
+    const source = code.value.trim();
+
+    if (!source) {
+
+        showRuntimeError(
+            "กรุณาเขียนโปรแกรมก่อนกด Run"
+        );
+
+        return;
+    }
+
+    const errors = checkCode();
+
+    if (
+        errors.some(
+            e =>
+                !e.startsWith("แนะนำ")
+        )
+    ) {
+
+        status.textContent =
+            "● Error";
+
+        return;
+    }
+
+    status.textContent =
+        "● Running...";
+
+    output.textContent =
+        "กำลังประมวลผล...";
+
+    setTimeout(function() {
+
+        try {
+
+            simulateC();
+
+        } catch (error) {
+
+            showRuntimeError(
+                "Runtime Error: " +
+                error.message
+            );
+
+        }
+
+    }, 350);
+}
+
+
+/* =========================
+   STOP
+========================= */
+
+function stopCode() {
+
+    status.textContent =
+        "● Stopped";
+
+    output.textContent =
+        "Program stopped.";
+
+    errorOutput.className =
+        "error-output error";
+
+    errorOutput.textContent =
+        "⏹ หยุดการทำงานโดยผู้ใช้";
+}
+
+
+/* =========================
+   SIMULATE C
+========================= */
+
+function simulateC() {
+
+    const source = code.value;
+
+    const values =
+        input.value
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+
+    let inputIndex = 0;
+
     const variables = {};
 
-    // อ่านข้อมูล printf และ scanf แบบลำดับบรรทัด
-    const lines = source.split("\n");
 
-    for (let line of lines) {
-        line = line.trim();
+    /*
+       รองรับ
 
-        // จัดการ printf
-        if (line.startsWith("printf")) {
-            const match = /printf\s*\(\s*"([\s\S]*?)"\s*(?:,\s*([\s\S]*?))?\s*\)/.exec(line);
-            if (match) {
-                let text = match[1];
-                const args = match[2] ? match[2].split(",").map(x => x.trim()) : [];
-                let argIndex = 0;
+       int a;
+       int a = 10;
+       int a, b;
+    */
 
-                text = text.replace(/%(\.?\d*)f/g, (m, p) => {
-                    const val = evaluate(args[argIndex++], variables);
-                    return Number(val).toFixed(p ? parseInt(p.replace(".", "")) : 6);
-                });
-                text = text.replace(/%d/g, () => evaluate(args[argIndex++], variables));
-                text = text.replace(/\\n/g, "\n").replace(/\\t/g, "\t");
+    const declarations =
+        /\bint\s+([^;]+);/g;
 
-                terminalContent.textContent += text;
-            }
-        }
+    let match;
 
-        // จัดการ scanf (หยุดรอรับพิมพ์สดจากผู้ใช้)
-        if (line.startsWith("scanf")) {
-            const match = /scanf\s*\(\s*"([^"]*)"\s*,\s*([^)]+)\)/.exec(line);
-            if (match) {
-                const args = match[2].split(",").map(x => x.replace("&", "").trim());
-                for (let arg of args) {
-                    const inputVal = await readConsoleInput();
-                    variables[arg] = isNaN(inputVal) ? inputVal : Number(inputVal);
+    while (
+        (match =
+            declarations.exec(source)) !== null
+    ) {
+
+        const declaration =
+            match[1];
+
+        const parts =
+            declaration.split(",");
+
+        parts.forEach(part => {
+
+            part = part.trim();
+
+            const equalIndex =
+                part.indexOf("=");
+
+            if (equalIndex >= 0) {
+
+                const name =
+                    part.substring(
+                        0,
+                        equalIndex
+                    ).trim();
+
+                const expression =
+                    part.substring(
+                        equalIndex + 1
+                    ).trim();
+
+                variables[name] =
+                    evaluate(
+                        expression,
+                        variables
+                    );
+
+            } else {
+
+                const name =
+                    part.trim();
+
+                if (/^[A-Za-z_]\w*$/.test(name)) {
+                    variables[name] = 0;
                 }
             }
+
+        });
+
+    }
+
+
+    /*
+       scanf()
+    */
+
+    const scanfRegex =
+        /scanf\s*\(\s*"([^"]*)"\s*,\s*([^)]+)\)/g;
+
+    while (
+        (match =
+            scanfRegex.exec(source)) !== null
+    ) {
+
+        const format =
+            match[1];
+
+        const args =
+            match[2]
+                .split(",")
+                .map(
+                    x =>
+                        x
+                            .replace(/&/g, "")
+                            .trim()
+                );
+
+        const formats =
+            format.match(/%[dfc]/g) || [];
+
+        formats.forEach(
+            (fmt, i) => {
+
+                const variable =
+                    args[i];
+
+                const value =
+                    values[inputIndex++] ??
+                    "0";
+
+                if (!variable) return;
+
+                if (fmt === "%d") {
+
+                    variables[variable] =
+                        Number(value);
+
+                } else {
+
+                    variables[variable] =
+                        value;
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /*
+       printf()
+    */
+
+    const printfRegex =
+        /printf\s*\(\s*"([\s\S]*?)"\s*(?:,\s*([\s\S]*?))?\s*\)/g;
+
+    let result = "";
+
+    while (
+        (match =
+            printfRegex.exec(source)) !== null
+    ) {
+
+        let text =
+            match[1];
+
+        const args =
+            splitArguments(
+                match[2] || ""
+            );
+
+        let argIndex = 0;
+
+
+        text =
+            text.replace(
+                /%d/g,
+                function() {
+
+                    const expression =
+                        args[argIndex++] || "0";
+
+                    return evaluate(
+                        expression,
+                        variables
+                    );
+
+                }
+            );
+
+
+        text =
+            text.replace(
+                /%f/g,
+                function() {
+
+                    const expression =
+                        args[argIndex++] || "0";
+
+                    const value =
+                        evaluate(
+                            expression,
+                            variables
+                        );
+
+                    return Number(value)
+                        .toFixed(6);
+
+                }
+            );
+
+
+        text =
+            text.replace(
+                /%c/g,
+                function() {
+
+                    const expression =
+                        args[argIndex++] || "";
+
+                    return evaluate(
+                        expression,
+                        variables
+                    );
+
+                }
+            );
+
+
+        text =
+            text
+                .replace(/\\n/g, "\n")
+                .replace(/\\t/g, "\t")
+                .replace(/\\"/g, '"');
+
+
+        result += text;
+    }
+
+
+    if (!result) {
+
+        result =
+            "Program finished successfully.";
+
+    }
+
+
+    output.textContent =
+        result;
+
+    errorOutput.className =
+        "error-output success";
+
+    errorOutput.textContent =
+        "✓ Compile สำเร็จ\n" +
+        "✓ Program finished successfully.";
+
+    status.textContent =
+        "● Ready";
+}
+
+
+/* =========================
+   SPLIT ARGUMENTS
+========================= */
+
+function splitArguments(text) {
+
+    if (!text.trim()) {
+        return [];
+    }
+
+    const result = [];
+
+    let current = "";
+
+    let depth = 0;
+
+    for (
+        let i = 0;
+        i < text.length;
+        i++
+    ) {
+
+        const char = text[i];
+
+        if (char === "(") {
+            depth++;
+        }
+
+        if (char === ")") {
+            depth--;
+        }
+
+        if (
+            char === "," &&
+            depth === 0
+        ) {
+
+            result.push(
+                current.trim()
+            );
+
+            current = "";
+
+        } else {
+
+            current += char;
         }
     }
 
-    errorOutput.className = "error-output success";
-    errorOutput.textContent = "✓ Executed Successfully";
-    status.textContent = "● Ready";
+    if (current.trim()) {
+        result.push(current.trim());
+    }
+
+    return result;
 }
+
+
+/* =========================
+   EVALUATE
+========================= */
+
+function evaluate(
+    expression,
+    variables
+) {
+
+    if (!expression) {
+        return "";
+    }
+
+    expression =
+        expression.trim();
+
+
+    /*
+       String
+    */
+
+    if (
+        expression.startsWith('"') &&
+        expression.endsWith('"')
+    ) {
+
+        return expression.slice(1, -1);
+
+    }
+
+
+    /*
+       Character
+    */
+
+    if (
+        expression.startsWith("'") &&
+        expression.endsWith("'")
+    ) {
+
+        return expression.slice(1, -1);
+
+    }
+
+
+    /*
+       แทนค่าตัวแปร
+    */
+
+    let formula =
+        expression.replace(
+            /\b[A-Za-z_]\w*\b/g,
+            function(name) {
+
+                if (
+                    Object.prototype.hasOwnProperty.call(
+                        variables,
+                        name
+                    )
+                ) {
+
+                    return variables[name];
+
+                }
+
+                return name;
+            }
+        );
+
+
+    /*
+       คำนวณเลข
+    */
+
+    if (
+        /^[0-9+\-*/%().\s]+$/.test(formula)
+    ) {
+
+        try {
+
+            return Function(
+                "return (" +
+                formula +
+                ")"
+            )();
+
+        } catch {
+
+            return formula;
+        }
+    }
+
+
+    return formula;
+}
+
+
+/* =========================
+   CLEAR
+========================= */
+
+function clearAll() {
+
+    code.value = "";
+    input.value = "";
+
+    output.textContent =
+        "ผลลัพธ์จะแสดงที่นี่...";
+
+    errorOutput.className =
+        "error-output";
+
+    errorOutput.textContent =
+        "พร้อมทำงาน";
+
+    errorBar.classList.remove("show");
+
+    status.textContent =
+        "● Ready";
+
+    updateLines();
+    updatePosition();
+
+    code.focus();
+}
+
+
+function clearOutput() {
+
+    output.textContent =
+        "ผลลัพธ์จะแสดงที่นี่...";
+}
+
+
+/* =========================
+   COPY
+========================= */
+
+async function copyCode() {
+
+    try {
+
+        await navigator.clipboard.writeText(
+            code.value
+        );
+
+        status.textContent =
+            "● Copied";
+
+        setTimeout(() => {
+            status.textContent =
+                "● Ready";
+        }, 1200);
+
+    } catch {
+
+        code.select();
+
+        document.execCommand("copy");
+
+        status.textContent =
+            "● Copied";
+    }
+}
+
+
+/* =========================
+   SAVE .C
+========================= */
+
+function saveCode() {
+
+    const blob =
+        new Blob(
+            [code.value],
+            {
+                type: "text/plain"
+            }
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+    link.download = "main.c";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    URL.revokeObjectURL(url);
+
+    status.textContent =
+        "● Saved";
+}
+
+
+/* =========================
+   ERROR
+========================= */
+
+function showRuntimeError(message) {
+
+    output.textContent =
+        "เกิดข้อผิดพลาด";
+
+    errorOutput.className =
+        "error-output error";
+
+    errorOutput.textContent =
+        message;
+
+    status.textContent =
+        "● Error";
+}
+
+
+/* =========================
+   START
+========================= */
+
+updateLines();
+updatePosition();
+checkCode();
+
+</script>
+
+</body>
+</html>
